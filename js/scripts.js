@@ -294,7 +294,7 @@ function hidetext() {
 }
 
 function dotplot(sequence, table, pname) {
-    //console.log('hi', sequence, table, pname);
+    console.log('hi', sequence, JSON.stringify(table), pname);
     var maindic = {};
 
 
@@ -433,7 +433,7 @@ function dotplot(sequence, table, pname) {
             .data(row.filter(function(d) { return d.z; }))
             .enter().append("g")
             .attr("class", "dp_cell");
-        
+
         cell.append("rect")
 	        .attr("x", function(d) { return x(d.x) ; })
 	        //.attr("cy", 26)
