@@ -5,8 +5,36 @@
  #######################--- Methods for Generating DotPlots ---############################
  */
 //Note to self, keep everything simple
-function hover_cell_function(p) {       //provide x & y & table data and get a string // use some other library
-    // var par = "#" + this.parentElement.parentElement.parentElement.parentElement.id; // get svg name
+
+function hover_cell_function(p) {
+    //todo:calls hovertooltip(i,j) and calls col_header_highlight(i,j) which also gets the arcs for subsequences
+    var par = "#" + this.parentElement.parentElement.parentElement.parentElement.id; // get svg name
+    // console.log(this.parentElement.parentElement.parentElement.parentElement.id);
+    var tooltip = d3.select(this.parentElement.parentElement.parentElement.parentElement.id).append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("text-align", "center")
+        .style("width", "60px")
+        .style("height","28px")
+        .style("padding", "2px")
+        .style("font","12px sans-serif")
+        .style("background", "lightsteelblue")
+        .style("border", "0px")
+        .style("border-radius", "8px")
+        .style("pointer-events", "none");
+
+    tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
+    tooltip.html("hello!")
+        // if ((d.z).toFixed(4) > 0.0000){
+        //     tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
+        //         .style("left", (d3.event.pageX) + "px")
+        //         .style("top", (d3.event.pageY - 28) + "px");
+        // }
+
+
     // var rowText = par + ' .rowtext';
     // var colText = par + ' .coltext';
     // var rect    = par + ' .row .dp_cell rect';
@@ -15,17 +43,7 @@ function hover_cell_function(p) {       //provide x & y & table data and get a s
     // d3.selectAll(rowText).classed("active", function(d, i) { return i == p.y; });
     // d3.selectAll(colText).classed("active", function(d, i) { return i == p.x; });
     // d3.selectAll(rect).classed("active", function(d, i) { return d.y == p.y && d.x == p.x; });
-    // d3.selectAll(text).attr("display",function(d, i) { if (d.y == p.y && d.x == p.x) return "true"; else return "none" });
-
-    // tooltip.transition()
-    //     .duration(200)
-    //     .style("opacity", .9);
-    // tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
-    //     .style("left", (d3.event.pageX) + "px")
-    //     .style("top", (d3.event.pageY - 28) + "px");
-
-    //calls hovertooltip(i,j);
-    //and calls col_header_highlight(i,j) which also gets the arcs for subsequences
+    // d3.selectAll(text).attr("display",function(d, i) { if (d.y == p.y && d.x == p.x) return "true"; else return "none" })
 }
 
 function mouseout() {
@@ -64,6 +82,13 @@ function hidetext() {
         .attr("display","none")
 }
 
+function doubleclick() {
+    var par = "#" + this.parentElement.parentElement.parentElement.parentElement.id;
+    var svg = par + '_svg';
+    d3.selectAll(svg)
+        .attr("transform", "scale(1)");
+}
+
 function dotplot(sequence, table, pname) {
     // console.log('hi', sequence, table, pname);
 
@@ -94,7 +119,7 @@ function dotplot(sequence, table, pname) {
             //var c = Math.pow(parseFloat(table[i][j].value), 0.5);
             var c = parseFloat(table[i][j].value);
             c = parseFloat(c.toFixed(3));
-            if(c > 1 || c < 0){ //todo: allow null
+            if(c > 1 || c < 0){
                 alert("Invalid probability value found in the data.");
                 return;
             }
@@ -114,28 +139,19 @@ function dotplot(sequence, table, pname) {
     var parent_width = $("#"+pname).width();
     var parent_height = $("#"+pname).height();
     var svg_dim = Math.min(parent_width, parent_height);
+    document.getElementById(pname).style.width = svg_dim + "px";
+    document.getElementById(pname).style.height = svg_dim + "px";
+    parent_width = $("#"+pname).width();
+    parent_height = $("#"+pname).height();
+
 
     var bpm=maindic;
     var cell_length = 50;
-    var margin = {top: 0, right: 0, bottom: 0, left: 0}, //30 50 25 50
-        width = svg_dim,// - margin.left - margin.right, //350
-        height = svg_dim;// - margin.bottom - margin.top; //300
+    var width = svg_dim,
+        height = svg_dim;
     var x = d3.scale.ordinal().rangeBands([0, width]),
         z = d3.scale.linear().domain([0, 1]).clamp(true),
         c = d3.scale.category10().domain(d3.range(10));
-
-    //svg should be centered, calculate origin for centering
-    var calc_origin = function(parent_width, parent_height){
-        if(parent_height === parent_width){
-            return [0,0];
-        } else if(parent_height > parent_width){
-            return [0, (parent_height - parent_width)/2];
-        } else {
-            return [(parent_width - parent_height)/2, 0];
-        }
-    }
-    var origin = calc_origin(parent_width, parent_height);
-
 
     var force = d3.layout.force()
         .charge(-120)
@@ -172,11 +188,17 @@ function dotplot(sequence, table, pname) {
         d3.select(this).classed("dragging", false);
     }
 
+    var dev = document.getElementById(pname);
+    d3.select(dev).style("border", "1px solid black");
 
     //var svg = d3.select("#output").append("svg")
-    var dev = document.createElement("div"); //todo: remove this div, re-size the parent div to quadratic, skip translation
-    d3.select(dev).style("width", parent_width+"px").style("height", parent_height+"px").style("border", "1px solid black");
-    // var desc = d3.select(dev).append("div").style("margin-top", "10%").style("font-size", "120%");
+    var dev = document.createElement("div"); //todo: remove this div,
+    //todo: re-size the parent div to quadratic, DONE
+    // todo: skip translation DONE
+    d3.select(dev)
+        .style("width", parent_width+"px")
+        .style("height", parent_height+"px");
+        // .style("border", "1px solid black");
 
     //hover information
     var tooltip = d3.select(dev).append("div")
@@ -193,24 +215,21 @@ function dotplot(sequence, table, pname) {
         .style("border-radius", "8px")
         .style("pointer-events", "none");
 
-    var svg = d3.select(dev).append("svg")  //put row/col letters in rects, which have id's, can be accessed
-        .attr("id", pname)
-        .attr("width", width + origin[0])
-        .attr("height", height + origin[1])
+    var svg = d3.select(dev).append("svg")  //todo: put row/col letters in rects, which have id's, can be accessed
+        .attr("id", pname+"_svg")
+        .attr("width", width)
+        .attr("height", height)
         .append("g")
         .attr("border",1)
         .attr("fill", "black")
-        // .attr("transform", "translate(" + margin.left + "," + margin.top + ")")    //commented to prevent zoom translate bug
-        // TODO: translate origin for zoom, don't use margins
-        .attr("transform", "translate(" + origin[0] + "," + origin[1] + ")")
         .call(zoom)
-        .on("dblclick.zoom", function(d) {svg.attr("transform", "translate(" + origin[0] + "," + origin[1] + ")scale(1)")}); //todo: call a function for center and use it for initial load
+        .on("dblclick.zoom", function(d) {
+            svg.attr("transform", "scale(1)")
+        }); //todo: try to define it as a function
 
     var borderPath = svg.append("rect")
         .attr("x", 0)
         .attr("y", 0)
-        // .attr("height", height + margin.top + margin.bottom)
-        // .attr("width", width + margin.left + margin.right)
         .style("stroke", "blue")
         .style("fill", "none");
 
@@ -279,8 +298,6 @@ function dotplot(sequence, table, pname) {
             //.attr("cy", 26)
             .attr("width", x.rangeBand())
             .attr("height",x.rangeBand())
-            //.attr("r", function(d) { return x.rangeBand() * Math.pow(z(d.z), 0.2)/2;})
-            //.attr("ry", function(d) { return x.rangeBand() * Math.pow(z(d.z), 0.5);})
             .attr("border", "1px solid")
             .style("stroke", "lightgrey")
             .style("stroke-width", 1)
@@ -289,32 +306,29 @@ function dotplot(sequence, table, pname) {
             //.style("fill-opacity", function(d) { return Math.pow(z(d.z), 0.5); })
             // .on("mouseover", hover_cell_function)       //hover function which gets the string
             // .on("mouseout", mouseout)
-            // .on("mouseover", function(d) {
-            //     tooltip.transition()
-            //         .duration(200)
-            //         .style("opacity", .9);
-            //     tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
-            //         .style("left", (d3.event.pageX) + "px")
-            //         .style("top", (d3.event.pageY - 28) + "px");
-            // })
-            // .on("mouseout", function(d) {
-            //     div.transition()
-            //         .duration(500)
-            //         .style("opacity", 0);
-            // })
+
+            .on("mouseover", function(d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                if ((d.z).toFixed(4) > 0.0000){
+                    tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                }
+            })
+            .on("mouseout", function(d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", 0);
+            })
             .on("mouseclick", select_cell_function);
 
         cell.append("circle")
             .attr("cx", function(d) { return x(d.x) + x.rangeBand() / 2; })
             .attr("cy", function(d) { return x.rangeBand() / 2;})
-            //.attr("width", function(d) {return x.rangeBand() * Math.pow(z(d.z), 0.5);})
-            //.attr("height", function(d) {return x.rangeBand() * Math.pow(z(d.z), 0.5);})
             .attr("r", function(d) { return 0.9*x.rangeBand() * Math.pow(z(d.z), 0.5)/2;})
-            //.attr("ry", function(d) { return x.rangeBand() * Math.pow(z(d.z), 0.5);})
-            //.attr("border", "1px solid red")
-            //.style("stroke", "rgb(0, 165, 255)")
             .style("stroke-width", 2)
-            //.style("fill-opacity", function(d) { return z(d.z); })
             .style("fill-opacity", function(d) { return Math.pow(z(d.z), 0.5); })
             // .on("mouseover", hover_cell_function)
             // .on("mouseout", mouseout)
@@ -323,21 +337,24 @@ function dotplot(sequence, table, pname) {
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
-                tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
-                    .style("left", (d3.event.pageX) + "px")
-                    .style("top", (d3.event.pageY - 28) + "px");
+                if ((d.z).toFixed(4) > 0.0000){
+                    tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                }
             })
+
             .on("mouseout", function(d) {
                 tooltip.transition()
-                    .duration(500)
+                    .duration(200)
                     .style("opacity", 0);
             })
-            // .on("mouseout", mouseout)
-            // .on("mouseclick", select_cell_function);
+
+            .on("mouseclick", select_cell_function);
     }
     return dev;
+    // return d3.select(pname);
 }
-
 
 
 function getHybridSequence( seq1, seq2, minLoopLength ) {
@@ -356,3 +373,9 @@ function getHybridSequence( seq1, seq2, minLoopLength ) {
 /*
  #######################--- END DotPlots ---############################
  */
+//links
+//http://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+//https://bl.ocks.org/mbostock/2206590
+//https://bl.ocks.org/mbostock/2206529
+//https://bl.ocks.org/mbostock/2206340
+//https://sarasoueidan.com/blog/svg-coordinate-systems/
