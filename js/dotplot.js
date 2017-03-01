@@ -58,8 +58,6 @@ function dotplot(sequence, table, pname) {
     var svg_dim = Math.min(parent_width, parent_height);
     document.getElementById(pname).style.width = svg_dim + "px";
     document.getElementById(pname).style.height = svg_dim + "px";
-    parent_width = $("#"+pname).width();
-    parent_height = $("#"+pname).height();
 
 
     var bpm=maindic;
@@ -104,18 +102,7 @@ function dotplot(sequence, table, pname) {
 
     //hover information
     var tooltip = d3.select(dev).append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0)
-        .style("position", "absolute")
-        .style("text-align", "center")
-        .style("width", "60px")
-        .style("height","28px")
-        .style("padding", "2px")
-        .style("font","12px sans-serif")
-        .style("background", "lightsteelblue")
-        .style("border", "0px")
-        .style("border-radius", "8px")
-        .style("pointer-events", "none");
+        .attr("class", "tooltip");
 
     var svg = d3.select(dev).append("svg")  //todo: put row/col letters in rects, which have id's, can be accessed
         .attr("id", pname+"_svg")
@@ -125,15 +112,9 @@ function dotplot(sequence, table, pname) {
         .attr("border",1)
         .attr("fill", "black")
         .call(zoom)
-        .on("dblclick.zoom", function(d) {
+        .on("dblclick.zoom", function() {
             svg.attr("transform", "scale(1)")
         });
-
-    var borderPath = svg.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .style("stroke", "blue")
-        .style("fill", "none");
 
     var matrix = [];
 
@@ -159,32 +140,36 @@ function dotplot(sequence, table, pname) {
         .attr("class", "column")
         .attr("transform", function(d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
 
-    column.append("line")
-        .attr("x1", -width);
+    // column.append("line")
+    //     .attr("x1", -width);
 
-    column.append("text")
-        .attr("class","coltext")
-        .attr("x", 6)
+    // column.append("text")
+    //     .attr("class","coltext")
+    //     .attr("x", 6)
+    //     .attr("y", x.rangeBand() / 2)
+    //     .attr("dy", ".32em")
+    //     .attr("text-anchor", "start")
+    //     .style("font-size", "140%")
+    //     .text(function(d, i) { return isequence[i]; });
+
+
+    //creates blank rects over svg
+    column.append("rect")
+        .attr("x", function(d) {return x(d.x) ; })
+        // .attr("x", -6)
         .attr("y", x.rangeBand() / 2)
+        .attr("width", x.rangeBand())
+        .attr("height",x.rangeBand())
+        .attr("border", "1px solid")
+        .style("stroke", "lightgrey")
+        .style("stroke-width", 1)
+        .style("fill", "white" )
+        .style("fill-opacity", 1 )
+        .append("text")
         .attr("dy", ".32em")
         .attr("text-anchor", "start")
         .style("font-size", "140%")
         .text(function(d, i) { return isequence[i]; });
-
-
-    //creates blank rects over svg
-    // column.append("rect")
-    //     .attr("x", function(d) { return x(d.x) ; })
-    //     // .attr("x", -6)
-    //     .attr("y", x.rangeBand() / 2)
-    //     .attr("width", x.rangeBand())
-    //     .attr("height",x.rangeBand())
-    //     .attr("border", "1px solid")
-    //     .style("stroke", "lightgrey")
-    //     .style("stroke-width", 1)
-    //     .style("fill", "white" )
-    //     .style("fill-opacity", 1 )
-    //     .text(function(d, i) { return isequence[i]; });
 
 
     var row = svg.selectAll(".row")
@@ -193,9 +178,6 @@ function dotplot(sequence, table, pname) {
         .attr("class", "row")
         .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; })
         .each(row);
-
-    row.append("line")
-        .attr("x2", width);
 
     row.append("text")
         .attr("class","rowtext")
@@ -207,6 +189,17 @@ function dotplot(sequence, table, pname) {
         .text(function(d, i) { return isequence[i]; });
 
     function hover_cell_function(d) {
+        tooltip.style("opacity", 0)
+            .style("position", "absolute")
+            .style("text-align", "center")
+            .style("width", "60px")
+            .style("height","28px")
+            .style("padding", "2px")
+            .style("font","12px sans-serif")
+            .style("background", "lightsteelblue")
+            .style("border", "0px")
+            .style("border-radius", "8px")
+            .style("pointer-events", "none");
         tooltip.transition()
             .duration(200)
             .style("opacity", .9);
@@ -215,16 +208,33 @@ function dotplot(sequence, table, pname) {
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
         }
-    };
+    }
 
     function mouseout(){
         tooltip.transition()
             .duration(200)
             .style("opacity", 0);
-    };
+    }
 
-    function select_cell_function() {
-    };
+    function select_cell_function(d) {
+        tooltip.style("opacity", 0)
+            .style("position", "absolute")
+            .style("text-align", "center")
+            .style("width", "60px")
+            .style("height","28px")
+            .style("padding", "2px")
+            .style("font","12px sans-serif")
+            .style("background", "red")
+            .style("border", "0px")
+            .style("border-radius", "16px")
+            .style("pointer-events", "none");
+        tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
+        tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+}
 
     function row(row) {
         var cell = d3.select(this).selectAll(".cell")
@@ -244,25 +254,7 @@ function dotplot(sequence, table, pname) {
             // .style("fill-opacity", function(d) { return Math.pow(z(d.z), 0.5); })
             .on("mouseover", hover_cell_function)       //hover function which gets the string
             .on("mouseout", mouseout)
-
-            // .on("mouseover", function(d) {
-            //     tooltip.transition()
-            //         .duration(200)
-            //         .style("opacity", .9);
-            //     if ((d.z).toFixed(4) > 0.0000){
-            //         tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
-            //             .style("left", (d3.event.pageX) + "px")
-            //             .style("top", (d3.event.pageY - 28) + "px");
-            //     }
-            // })
-            // .on("mouseout", function(d) {
-            //     tooltip.transition()
-            //         .duration(200)
-            //         .style("opacity", 0);
-            // })
-            // .on("mouseover", hover_cell)
-            // .on("mouseout", mouseOUT)
-            .on("mouseclick", select_cell_function);
+            .on("click", select_cell_function);
 
         cell.append("circle")
             .attr("cx", function(d) { return x(d.x) + x.rangeBand() / 2; })
@@ -272,27 +264,7 @@ function dotplot(sequence, table, pname) {
             .style("fill-opacity", function(d) { return Math.pow(z(d.z), 0.5); })
             .on("mouseover", hover_cell_function)
             .on("mouseout", mouseout)
-
-            // .on("mouseover", function(d) {
-            //     tooltip.transition()
-            //         .duration(200)
-            //         .style("opacity", .9);
-            //     if ((d.z).toFixed(4) > 0.0000){
-            //         tooltip.html("(" + (d.x + 1) +  ", " + (d.y + 1) + ")<br/>" + (d.z).toFixed(4))
-            //             .style("left", (d3.event.pageX) + "px")
-            //             .style("top", (d3.event.pageY - 28) + "px");
-            //     }
-            // })
-
-            // .on("mouseout", function(d) {
-            //     tooltip.transition()
-            //         .duration(200)
-            //         .style("opacity", 0);
-            // })
-
-            // .on("mouseover", hover_cell)
-            // .on("mouseout", mouseOUT)
-            .on("mouseclick", select_cell_function);
+            .on("click", select_cell_function);
     }
 }
 
@@ -313,9 +285,3 @@ function getHybridSequence( seq1, seq2, minLoopLength ) {
 /*
  #######################--- END DotPlots ---############################
  */
-//links
-//http://bl.ocks.org/d3noob/a22c42db65eb00d4e369
-//https://bl.ocks.org/mbostock/2206590
-//https://bl.ocks.org/mbostock/2206529
-//https://bl.ocks.org/mbostock/2206340
-//https://sarasoueidan.com/blog/svg-coordinate-systems/
