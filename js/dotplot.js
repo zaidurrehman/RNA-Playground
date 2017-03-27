@@ -39,51 +39,7 @@ function clicktext(x, y, z){
 
 }
 
-function onHover(d) {  //todo: calls an external func(x,y,z) which tells what to render [null, text]
-    tooltip.style("position", "absolute")
-        .style("text-align", "center")
-        .style("width", "60px")
-        .style("height", "28px")
-        .style("padding", "2px")
-        .style("font", "12px sans-serif")
-        .style("background", "lightsteelblue")
-        .style("border", "0px")
-        .style("border-radius", "8px")
-        .style("pointer-events", "none");
-    tooltip.transition()
-        .duration(200)
-        .style("opacity", .9);    //todo: if d.z is numeric
-    hovertext(d.x, d.y, d.z);
-}
-
-function mouseout(){
-    tooltip.transition()
-        .duration(200)
-        .style("opacity", 0);
-}
-
-function onClick(d) { //todo: this goes inside dotplot function too
-    tooltip.style("opacity", 0)
-        .style("position", "absolute")
-        .style("text-align", "center")
-        .style("width", "60px")
-        .style("height","28px")
-        .style("padding", "2px")
-        .style("font","12px sans-serif")
-        .style("background", "red")
-        .style("border", "0px")
-        .style("border-radius", "16px")
-        .style("pointer-events", "none");
-    tooltip.transition()
-        .duration(200)
-        .style("opacity", .9);
-    // tooltip.html("(" + (d.x) +  ", " + (d.y) + ")<br/>" + (d.z).toFixed(4))
-    //     .style("left", (d3.event.pageX) + "px")
-    //     .style("top", (d3.event.pageY - 28) + "px");
-    clicktext(d.x, d.y, d.z);
-}
-
-function dotplot(sequence, table, pname) {  //todo: hover reaction and click reaction as inputs, both can be null, rename hovertext to hover reaction   
+function dotplot(sequence, table, pname) {  //todo: hover reaction and click reaction as inputs, both can be null, rename hovertext to hover reaction
 
     // validate input sequence
     for (var i=0; i<sequence.length; i++){
@@ -98,9 +54,8 @@ function dotplot(sequence, table, pname) {  //todo: hover reaction and click rea
         alert("Invalid matrix dimensions");
         return "<p>Invalid table entries</p>"
     }
+
     var maindic = {};
-
-
     var bpp = [];
     var mlp = [];
     var keys=["source","target","value"];
@@ -125,6 +80,7 @@ function dotplot(sequence, table, pname) {  //todo: hover reaction and click rea
         }
     }
 
+
     maindic['sequence'] = sequence;
     maindic["base-pairing-probabilities"] = bpp;
     maindic["optimal-structure"] = mlp;
@@ -137,7 +93,7 @@ function dotplot(sequence, table, pname) {  //todo: hover reaction and click rea
     document.getElementById(pname).style.height = svg_dim + "px";
 
 
-    var bpm=maindic;
+    var bpm = maindic;
     var width = svg_dim,
         height = svg_dim;
     var x = d3.scale.ordinal().rangeBands([0, width]),
@@ -226,6 +182,50 @@ function dotplot(sequence, table, pname) {  //todo: hover reaction and click rea
         .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; })
         .each(row);
 
+    function onHover(d) {  //todo: calls an external func(x,y,z) which tells what to render [null, text]
+        tooltip.style("position", "absolute")
+            .style("text-align", "center")
+            .style("width", "60px")
+            .style("height", "28px")
+            .style("padding", "2px")
+            .style("font", "12px sans-serif")
+            .style("background", "lightsteelblue")
+            .style("border", "0px")
+            .style("border-radius", "8px")
+            .style("pointer-events", "none");
+        tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);    //todo: if d.z is numeric
+        hovertext(d.x, d.y, d.z);
+    }
+
+    function mouseout(){
+        tooltip.transition()
+            .duration(200)
+            .style("opacity", 0);
+    }
+
+    function onClick(d) { //todo: this goes inside dotplot function too
+        tooltip.style("opacity", 0)
+            .style("position", "absolute")
+            .style("text-align", "center")
+            .style("width", "60px")
+            .style("height","28px")
+            .style("padding", "2px")
+            .style("font","12px sans-serif")
+            .style("background", "red")
+            .style("border", "0px")
+            .style("border-radius", "16px")
+            .style("pointer-events", "none");
+        tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
+        // tooltip.html("(" + (d.x) +  ", " + (d.y) + ")<br/>" + (d.z).toFixed(4))
+        //     .style("left", (d3.event.pageX) + "px")
+        //     .style("top", (d3.event.pageY - 28) + "px");
+        clicktext(d.x, d.y, d.z);
+    }
+
     function row(row) {
         var cell = d3.select(this).selectAll(".cell")
             .data(row.filter(function(d) { return d.z; }))
@@ -272,7 +272,6 @@ function dotplot(sequence, table, pname) {  //todo: hover reaction and click rea
             .on("mouseover", onHover)
             .on("mouseout", mouseout)
             .on("click", onClick);
-
 
         cell.append("text")
             .attr("x", function(d) { return x(d.x) + x.rangeBand()/2; })
