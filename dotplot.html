@@ -128,7 +128,10 @@
             'traces': []
         }]];
         var sequence = "GGUCCAC";
-        $('#small').html(dotplot(sequence, cells, pname));
+        function react(x,y,z){
+            console.log("X: " + x + " Y: " + y + " Z: " + z);
+        }
+        $('#small').html(dotplot(sequence, cells, pname, react, react ));
 
     }
 
