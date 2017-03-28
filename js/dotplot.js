@@ -6,26 +6,14 @@
  */
 //Note to self, keep everything simple
 
-var matrix = []; // matrix should be accessible globally
+var matrix = []; // table data, globally accessible
 var tooltip;    // for hover information on cells
 
 var toType = function(obj) {
     return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
 }
 
-// function renderarc(x, y, pname, rect_dim) {
-//     console.log("rect_dim " + rect_dim + " type " + toType(rect_dim));
-//     console.log((rect_dim/2) + (rect_dim * x));
-//     d3.select("#" + pname + "_svg").append("line")
-//         .style("stroke-width", "2")
-//         .style("stroke", "blue")
-//         .attr("x1", (rect_dim/2) + (rect_dim * x))
-//         .attr("y1", rect_dim/2)
-//         .attr("x2", (rect_dim/2) + (rect_dim * y))
-//         .attr("y2", rect_dim/2);
-// }
-
-function hover_default(x, y, z){ //todo: this stays outside as default reaction:Done
+function hover_default(x, y, z){
     if (y !== 0 && x !== 0) {
         if (z.toFixed(4) > 0.0000){
             tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
@@ -37,7 +25,7 @@ function hover_default(x, y, z){ //todo: this stays outside as default reaction:
 
 function click_default(x, y, z){
     if (y !== 0 && x !== 0) {
-        renderarc(x, y);
+        // renderarc(x, y);
         tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
             .style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY - 28) + "px");
@@ -49,7 +37,7 @@ function click_default(x, y, z){
 //     d3.select("#" + pname + "_border_" + y +"_0").style("stroke", "red");
 // }
 
-function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //todo: hover reaction and click reaction as inputs, both can be null, rename hovertext to hover reaction:done
+function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
 
     if(hover_reaction === undefined){
         hover_reaction = hover_default;
@@ -149,13 +137,9 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //to
     var dev = document.getElementById(pname);
     d3.select(dev).style("border", "1px solid black");
 
-    //hover information
-    // var tooltip = d3.select(dev).append("div") //todo: DONE: this goes outside the dotplot func
-    //     .attr("class", "tooltip");
-    tooltip = d3.select(dev).append("div") //todo: DONE: this goes outside the dotplot func
-        .attr("class", "tooltip");
+    tooltip = d3.select(dev).append("div");
 
-    var svg = d3.select(dev).append("svg")  //todo: put row/col letters in rects, which have id's, can be accessed: DONEf
+    var svg = d3.select(dev).append("svg")
         .attr("id", pname+"_svg")
         .attr("width", width)
         .attr("height", height)
@@ -200,7 +184,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //to
     function renderarc(x, y, pname, rect_dim) {
         console.log("rect_dim " + rect_dim + " type " + toType(rect_dim));
         console.log((rect_dim/2) + (rect_dim * x));
-        d3.select("#" + pname + "_svg").append("line")
+        d3.select("#" + pname + "_svg").select("g").append("line")
             .style("stroke-width", "2")
             .style("stroke", "red")
             .attr("x1", (rect_dim/2) + (rect_dim * x))
@@ -209,8 +193,8 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //to
             .attr("y2", rect_dim/4);
     }
 
-    function onHover(d) {  //todo: calls an external func(x,y,z) which tells what to render [null, text]:DONE
-        tooltip.style("position", "absolute")
+    function onHover(d) {
+        tooltip.style("position", "absolute")  //todo: define in style
             .style("text-align", "center")
             .style("width", "60px")
             .style("height", "28px")
@@ -220,12 +204,17 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //to
             .style("border", "0px")
             .style("border-radius", "8px")
             .style("pointer-events", "none");
+        // tooltip.attr("class", "tooltip_hover");
         if (typeof d.z === 'number'){
             tooltip.transition()
                 .duration(200)
                 .style("opacity", .9);
-        }    //todo: if d.z is numeric:DONE
-        hover_reaction(d.x, d.y, d.z);
+            hover_reaction(d.x, d.y, d.z);
+        }
+        /*else {
+            //redraw the svg
+        }*/
+
     }
 
     function mouseout(){
@@ -235,8 +224,8 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //to
             .style("background", "white");
     }
 
-    function onClick(d) { //todo: this goes inside dotplot function too:DONE
-        tooltip.style("opacity", 0)
+    function onClick(d) {
+        tooltip.style("opacity", 0)  //todo: define in stylesheet
             .style("position", "absolute")
             .style("text-align", "center")
             .style("width", "60px")
@@ -247,9 +236,11 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //to
             .style("border", "0px")
             .style("border-radius", "16px")
             .style("pointer-events", "none");
+        // tooltip.attr("class", "tooltip_click");
         tooltip.transition()
             .duration(200)
             .style("opacity", .9);
+        //todo: redraw the svg here
         click_reaction(d.x, d.y, d.z);
         color_headers(d.x, d.y, pname);
         renderarc(d.x, d.y, pname, rect_dim);
@@ -259,68 +250,85 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {  //to
         .data(matrix)
         .enter().append("g")
         .attr("class", "row")
-        .attr("transform", function(d, i) { return "translate(0," + x(i) + ")"; })
+        .attr("transform", function (d, i) {
+            return "translate(0," + x(i) + ")";
+        })
         .each(row);
 
     function row(row) {
         var cell = d3.select(this).selectAll(".cell")
-            .data(row.filter(function(d) { return d.z; }))
+            .data(row.filter(function (d) {
+                return d.z;
+            }))
             .enter().append("g")
             .attr("class", "dp_cell");
 
         cell.append("rect")
-            .attr("x", function(d) { return x(d.x) ; })
+            .attr("x", function (d) {
+                return x(d.x);
+            })
             .attr("width", x.rangeBand())
-            .attr("height",x.rangeBand())
+            .attr("height", x.rangeBand())
             .attr("border", "1px solid")
             .attr("id", function (d) {
-                if(d.x === 0 || d.y === 0) {
+                if (d.x === 0 || d.y === 0) {
                     return pname + "_border_" + d.x + "_" + d.y;
-                } else{
+                } else {
                     return pname + "_cell_" + d.x + "_" + d.y;
                 }
             })
-            .style("stroke", function(d) {
-                if(d.x === 0 || d.y === 0) {
+            .style("stroke", function (d) {
+                if (d.x === 0 || d.y === 0) {
                     return null;
                 } else {
-                    return  "lightgrey";
+                    return "lightgrey";
                 }
             })
             .style("stroke-width", 1)
-            .style("fill", "white" )
-            .style("fill-opacity", 1 )
+            .style("fill", "white")
+            .style("fill-opacity", 1)
             .on("mouseover", onHover)
             .on("mouseout", mouseout)
             .on("click", onClick);
 
         cell.append("circle")
-            .attr("cx", function(d) { return x(d.x) + x.rangeBand() / 2; })
-            .attr("cy", function() { return x.rangeBand() / 2;})
-            .attr("r", function(d) {
-                if(typeof d.z === 'number'){
-                    return 0.9*x.rangeBand() * Math.pow(z(d.z), 0.5)/2;
+            .attr("cx", function (d) {
+                return x(d.x) + x.rangeBand() / 2;
+            })
+            .attr("cy", function () {
+                return x.rangeBand() / 2;
+            })
+            .attr("r", function (d) {
+                if (typeof d.z === 'number') {
+                    return 0.9 * x.rangeBand() * Math.pow(z(d.z), 0.5) / 2;
                 }
             })
-            .attr("id", function(d) {
-                if(typeof d.z === 'number'){
+            .attr("id", function (d) {
+                if (typeof d.z === 'number') {
                     return pname + "_circle_" + d.x + "_" + d.y;
-                }})
+                }
+            })
             .style("stroke-width", 2)
-            .style("fill-opacity", function(d) { return Math.pow(z(d.z), 0.5); })
+            .style("fill-opacity", function (d) {
+                return Math.pow(z(d.z), 0.5);
+            })
             .on("mouseover", onHover)
             .on("mouseout", mouseout)
             .on("click", onClick);
 
         cell.append("text")
-            .attr("x", function(d) { return x(d.x) + x.rangeBand()/2; })
-            .attr("y", x.rangeBand()/2)
+            .attr("x", function (d) {
+                return x(d.x) + x.rangeBand() / 2;
+            })
+            .attr("y", x.rangeBand() / 2)
             .attr("dy", ".32em")
             .attr("text-anchor", "middle")
             .style("font-size", "140%")
-            .text(function(d) { if(typeof d.z === 'string'){
-                return d.z;
-            } });
+            .text(function (d) {
+                if (typeof d.z === 'string') {
+                    return d.z;
+                }
+            });
     }
 }
 
