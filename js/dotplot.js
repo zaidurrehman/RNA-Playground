@@ -6,12 +6,8 @@
  */
 //Note to self, keep everything simple
 
-var matrix = []; // table data, globally accessible
-var tooltip;    // for hover information on cells
-
-var toType = function(obj) {
-    return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
-}
+var matrix = []; // table data, globally accessible //todo: should become obselete
+var tooltip;    // for hover information on cells //todo: this should be part of svg
 
 function hover_default(x, y, z){
     if (y !== 0 && x !== 0) {
@@ -19,6 +15,7 @@ function hover_default(x, y, z){
             tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
                 .style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY - 28) + "px");
+            // return "(" + x + ", " + y + ")<br/>" + z.toFixed(4);
         }
     }
 }
@@ -32,19 +29,16 @@ function click_default(x, y, z){
     }
 }
 
-// function color_headers(x, y, pname){
-//     d3.select("#" + pname + "_border_" + x +"_0").style("stroke", "red");
-//     d3.select("#" + pname + "_border_" + y +"_0").style("stroke", "red");
-// }
-
 function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
 
     if(hover_reaction === undefined){
         hover_reaction = hover_default;
     }
+
     if(click_reaction === undefined){
         click_reaction = click_default;
     }
+
     // validate input sequence
     for (var s=0; s<sequence.length; s++){
         if (sequence[s] != "A" && sequence[s] != "C" && sequence[s] != "G" && sequence[s] != "U"){
@@ -84,7 +78,6 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         }
     }
 
-
     maindic['sequence'] = sequence;
     maindic["base-pairing-probabilities"] = bpp;
     maindic["optimal-structure"] = mlp;
@@ -93,7 +86,6 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     var parent_width = $("#"+pname).width();
     var parent_height = $("#"+pname).height();
     var svg_dim = Number(Math.min(parent_width, parent_height));
-    // console.log(Number(Math.min(parent_width, parent_height)));
     document.getElementById(pname).style.width = svg_dim + "px";
     document.getElementById(pname).style.height = svg_dim + "px";
 
@@ -103,7 +95,6 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         height = svg_dim;
     var x = d3.scale.ordinal().rangeBands([0, width]),
         z = d3.scale.linear().domain([0, 1]).clamp(true);
-        // c = d3.scale.category10().domain(d3.range(10));
 
     // Zoom functionality code
     var zoom = d3.behavior.zoom()
@@ -151,6 +142,8 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             svg.attr("transform", "scale(1)")
         });
 
+    var original_svg = svg;
+
     var seq = bpm["sequence"];
     var isequence = bpm["sequence"];
     var n = seq.length + 1;
@@ -176,21 +169,36 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
 
     var rect_dim = x.rangeBand();
 
+    function redraw(){
+        return original_svg;
+    }
+
     function color_headers(x, y, pname){
-        d3.select("#" + pname + "_border_" + x +"_0").style("stroke", "red");
-        d3.select("#" + pname + "_border_" + y +"_0").style("stroke", "red");
+        // d3.select("#" + pname + "_border_" + x +"_0").style("stroke", "red");
+        d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
+        d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
     }
 
     function renderarc(x, y, pname, rect_dim) {
-        console.log("rect_dim " + rect_dim + " type " + toType(rect_dim));
-        console.log((rect_dim/2) + (rect_dim * x));
-        d3.select("#" + pname + "_svg").select("g").append("line")
-            .style("stroke-width", "2")
-            .style("stroke", "red")
-            .attr("x1", (rect_dim/2) + (rect_dim * x))
-            .attr("y1", rect_dim/4)
-            .attr("x2", (rect_dim/2) + (rect_dim * y))
-            .attr("y2", rect_dim/4);
+        if (x!==y) {
+            var x1 = (rect_dim / 2) + (rect_dim * x), // vertical tick
+                y1 = rect_dim / 4,
+                x2 = (rect_dim / 2) + (rect_dim * x), // actual arc/line start point
+                y2 = rect_dim / 6,
+                x3 = (rect_dim / 2) + (rect_dim * y), // arc/line end point
+                y3 = rect_dim / 6,
+                x4 = (rect_dim / 2) + (rect_dim * y), // vertical tick
+                y4 = rect_dim / 4;
+            d3.select("#" + pname + "_svg").select("g").append("polyline")
+                .style("stroke-width", "2")
+                .style("stroke", "royalblue")
+                .style("fill", "none")
+                .attr("points",
+                    x1 + "," + y1 + ", " +
+                    x2 + "," + y2 + ", " +
+                    x3 + "," + y3 + ", " +
+                    x4 + "," + y4);
+        }
     }
 
     function onHover(d) {
@@ -241,6 +249,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             .duration(200)
             .style("opacity", .9);
         //todo: redraw the svg here
+        svg = redraw();
         click_reaction(d.x, d.y, d.z);
         color_headers(d.x, d.y, pname);
         renderarc(d.x, d.y, pname, rect_dim);
