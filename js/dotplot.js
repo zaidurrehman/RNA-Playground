@@ -7,10 +7,10 @@
 //Note to self, keep everything simple
 
 var matrix = []; // table data, globally accessible //todo: should become obselete
-var tooltip;    // for hover information on cells //todo: this should be part of svg
 
 function hover_default(x, y, z){
-    tooltip.style("position", "absolute")  //todo: define in style
+    var tooltip = d3.select("#tooltip");
+    tooltip.style("position", "absolute")    //todo: define in stylesheet
         .style("text-align", "center")
         .style("width", "60px")
         .style("height", "28px")
@@ -20,6 +20,9 @@ function hover_default(x, y, z){
         .style("border", "0px")
         .style("border-radius", "8px")
         .style("pointer-events", "none");
+    tooltip.transition()
+        .duration(200)
+        .style("opacity", .9);
     if (y !== 0 && x !== 0) {
         if (z.toFixed(4) > 0.0000){
             tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
@@ -31,17 +34,21 @@ function hover_default(x, y, z){
 }
 
 function click_default(x, y, z){
-    tooltip.style("opacity", 0)  //todo: define in stylesheet
+    var tooltip = d3.select("#tooltip");
+    tooltip.style("opacity", 0)    //todo: define in stylesheet
         .style("position", "absolute")
         .style("text-align", "center")
         .style("width", "60px")
         .style("height","28px")
         .style("padding", "2px")
         .style("font","12px sans-serif")
-        .style("background", "red")
+        .style("background", "lightgreen")
         .style("border", "0px")
         .style("border-radius", "16px")
         .style("pointer-events", "none");
+    tooltip.transition()
+        .duration(200)
+        .style("opacity", .9);
     if (y !== 0 && x !== 0) {
         tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
             .style("left", (d3.event.pageX) + "px")
@@ -148,7 +155,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     var dev = document.getElementById(pname);
     d3.select(dev).style("border", "1px solid black");
 
-    tooltip = d3.select(dev).append("div").attr("id", "tooltip");
+    var tooltip = d3.select(dev).append("div").attr("id", "tooltip");
 
     var svg = d3.select(dev).append("svg")
         .attr("id", pname+"_svg")
@@ -161,13 +168,6 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         .on("dblclick.zoom", function() {
             svg.attr("transform", "scale(1)")
         });
-
-    var original_svg = svg;
-
-    function redraw(){
-        svg = original_svg;
-        d3.select(dev).append("svg");
-    }
 
     function color_headers(x, y, pname){
         d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
@@ -202,35 +202,19 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     }
 
     function onHover(d) {
-        // tooltip.attr("class", "tooltip_hover");
         if (typeof d.z === 'number'){
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", .9);
             hover_reaction(d.x, d.y, d.z);
         }
-        /*else {
-         //redraw the svg
-         }*/
-
     }
 
     function mouseout(){
         tooltip.transition()
             .duration(100)
-            .style("opacity", 0)
-            .style("background", "white");
+            .style("opacity", 0);
     }
 
     function onClick(d) {
-        // tooltip.attr("class", "tooltip_click");
-        tooltip.transition()
-            .duration(200)
-            .style("opacity", .9);
-        //todo: redraw the svg here
-        redraw();
         click_reaction(d.x, d.y, d.z);
-        // color_headers(d.x, d.y, pname);
         renderarc(d.x, d.y, pname, rect_dim);
     }
 
@@ -257,7 +241,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         matrix[link.source][link.target].z = link.value;
     });
 
-    var rect_dim = x.rangeBand();
+    var rect_dim = x.rangeBand();    //rectangle dimension, used for rendering arc on cell selection
 
     var row = svg.selectAll(".row")
         .data(matrix)

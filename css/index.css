@@ -140,7 +140,7 @@ div[id=max] {
     height: 28px;
     padding: 2px;
     font: 12px sans-serif;
-    background: red;
+    background: lightgreen;
     border: 0px;
     border-radius: 16px;
     pointer-events: none;
