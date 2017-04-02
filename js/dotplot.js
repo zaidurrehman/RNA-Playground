@@ -10,6 +10,16 @@ var matrix = []; // table data, globally accessible //todo: should become obsele
 var tooltip;    // for hover information on cells //todo: this should be part of svg
 
 function hover_default(x, y, z){
+    tooltip.style("position", "absolute")  //todo: define in style
+        .style("text-align", "center")
+        .style("width", "60px")
+        .style("height", "28px")
+        .style("padding", "2px")
+        .style("font", "12px sans-serif")
+        .style("background", "lightsteelblue")
+        .style("border", "0px")
+        .style("border-radius", "8px")
+        .style("pointer-events", "none");
     if (y !== 0 && x !== 0) {
         if (z.toFixed(4) > 0.0000){
             tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
@@ -21,8 +31,18 @@ function hover_default(x, y, z){
 }
 
 function click_default(x, y, z){
+    tooltip.style("opacity", 0)  //todo: define in stylesheet
+        .style("position", "absolute")
+        .style("text-align", "center")
+        .style("width", "60px")
+        .style("height","28px")
+        .style("padding", "2px")
+        .style("font","12px sans-serif")
+        .style("background", "red")
+        .style("border", "0px")
+        .style("border-radius", "16px")
+        .style("pointer-events", "none");
     if (y !== 0 && x !== 0) {
-        // renderarc(x, y);
         tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
             .style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY - 28) + "px");
@@ -128,7 +148,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     var dev = document.getElementById(pname);
     d3.select(dev).style("border", "1px solid black");
 
-    tooltip = d3.select(dev).append("div");
+    tooltip = d3.select(dev).append("div").attr("id", "tooltip");
 
     var svg = d3.select(dev).append("svg")
         .attr("id", pname+"_svg")
@@ -141,7 +161,66 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         .on("dblclick.zoom", function() {
             svg.attr("transform", "scale(1)")
         });
+    function color_headers(x, y, pname){
+        d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
+        d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
+    }
 
+    function renderarc(x, y, pname, rect_dim) {
+        if (x!==y) {
+            var x1 = (rect_dim / 2) + (rect_dim * x), // vertical tick
+                y1 = rect_dim / 4,
+                x2 = (rect_dim / 2) + (rect_dim * x), // actual arc/line start point
+                y2 = rect_dim / 6,
+                x3 = (rect_dim / 2) + (rect_dim * y), // arc/line end point
+                y3 = rect_dim / 6,
+                x4 = (rect_dim / 2) + (rect_dim * y), // vertical tick
+                y4 = rect_dim / 4;
+            d3.select("#" + pname + "_svg").select("g").append("polyline")
+                .style("stroke-width", "2")
+                .style("stroke", "royalblue")
+                .style("fill", "none")
+                .attr("points",
+                    x1 + "," + y1 + ", " +
+                    x2 + "," + y2 + ", " +
+                    x3 + "," + y3 + ", " +
+                    x4 + "," + y4);
+        }
+    }
+
+    function onHover(d) {
+        // tooltip.attr("class", "tooltip_hover");
+        if (typeof d.z === 'number'){
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            hover_reaction(d.x, d.y, d.z);
+        }
+        /*else {
+         //redraw the svg
+         }*/
+
+    }
+
+    function mouseout(){
+        tooltip.transition()
+            .duration(100)
+            .style("opacity", 0)
+            .style("background", "white");
+    }
+
+    function onClick(d) {
+        // tooltip.attr("class", "tooltip_click");
+        tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
+        //todo: redraw the svg here
+        svg = redraw();
+        click_reaction(d.x, d.y, d.z);
+        color_headers(d.x, d.y, pname);
+        renderarc(d.x, d.y, pname, rect_dim);
+    }
+    
     var original_svg = svg;
 
     var seq = bpm["sequence"];
@@ -171,88 +250,6 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
 
     function redraw(){
         return original_svg;
-    }
-
-    function color_headers(x, y, pname){
-        // d3.select("#" + pname + "_border_" + x +"_0").style("stroke", "red");
-        d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
-        d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
-    }
-
-    function renderarc(x, y, pname, rect_dim) {
-        if (x!==y) {
-            var x1 = (rect_dim / 2) + (rect_dim * x), // vertical tick
-                y1 = rect_dim / 4,
-                x2 = (rect_dim / 2) + (rect_dim * x), // actual arc/line start point
-                y2 = rect_dim / 6,
-                x3 = (rect_dim / 2) + (rect_dim * y), // arc/line end point
-                y3 = rect_dim / 6,
-                x4 = (rect_dim / 2) + (rect_dim * y), // vertical tick
-                y4 = rect_dim / 4;
-            d3.select("#" + pname + "_svg").select("g").append("polyline")
-                .style("stroke-width", "2")
-                .style("stroke", "royalblue")
-                .style("fill", "none")
-                .attr("points",
-                    x1 + "," + y1 + ", " +
-                    x2 + "," + y2 + ", " +
-                    x3 + "," + y3 + ", " +
-                    x4 + "," + y4);
-        }
-    }
-
-    function onHover(d) {
-        tooltip.style("position", "absolute")  //todo: define in style
-            .style("text-align", "center")
-            .style("width", "60px")
-            .style("height", "28px")
-            .style("padding", "2px")
-            .style("font", "12px sans-serif")
-            .style("background", "lightsteelblue")
-            .style("border", "0px")
-            .style("border-radius", "8px")
-            .style("pointer-events", "none");
-        // tooltip.attr("class", "tooltip_hover");
-        if (typeof d.z === 'number'){
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", .9);
-            hover_reaction(d.x, d.y, d.z);
-        }
-        /*else {
-            //redraw the svg
-        }*/
-
-    }
-
-    function mouseout(){
-        tooltip.transition()
-            .duration(100)
-            .style("opacity", 0)
-            .style("background", "white");
-    }
-
-    function onClick(d) {
-        tooltip.style("opacity", 0)  //todo: define in stylesheet
-            .style("position", "absolute")
-            .style("text-align", "center")
-            .style("width", "60px")
-            .style("height","28px")
-            .style("padding", "2px")
-            .style("font","12px sans-serif")
-            .style("background", "red")
-            .style("border", "0px")
-            .style("border-radius", "16px")
-            .style("pointer-events", "none");
-        // tooltip.attr("class", "tooltip_click");
-        tooltip.transition()
-            .duration(200)
-            .style("opacity", .9);
-        //todo: redraw the svg here
-        svg = redraw();
-        click_reaction(d.x, d.y, d.z);
-        color_headers(d.x, d.y, pname);
-        renderarc(d.x, d.y, pname, rect_dim);
     }
 
     var row = svg.selectAll(".row")
