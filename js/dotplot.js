@@ -161,12 +161,24 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         .on("dblclick.zoom", function() {
             svg.attr("transform", "scale(1)")
         });
+
+    var original_svg = svg;
+
+    function redraw(){
+        svg = original_svg;
+        d3.select(dev).append("svg");
+    }
+
     function color_headers(x, y, pname){
         d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
         d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
     }
 
     function renderarc(x, y, pname, rect_dim) {
+        d3.selectAll("rect").style("fill", "white");    // remove previous header shading, if any
+        d3.selectAll("#arc_polyline").remove();    // remove previously drawn arc, if any
+
+        color_headers(x, y, pname);
         if (x!==y) {
             var x1 = (rect_dim / 2) + (rect_dim * x), // vertical tick
                 y1 = rect_dim / 4,
@@ -177,6 +189,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
                 x4 = (rect_dim / 2) + (rect_dim * y), // vertical tick
                 y4 = rect_dim / 4;
             d3.select("#" + pname + "_svg").select("g").append("polyline")
+                .attr("id", "arc_polyline")
                 .style("stroke-width", "2")
                 .style("stroke", "royalblue")
                 .style("fill", "none")
@@ -215,13 +228,11 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             .duration(200)
             .style("opacity", .9);
         //todo: redraw the svg here
-        svg = redraw();
+        redraw();
         click_reaction(d.x, d.y, d.z);
-        color_headers(d.x, d.y, pname);
+        // color_headers(d.x, d.y, pname);
         renderarc(d.x, d.y, pname, rect_dim);
     }
-    
-    var original_svg = svg;
 
     var seq = bpm["sequence"];
     var isequence = bpm["sequence"];
@@ -247,10 +258,6 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     });
 
     var rect_dim = x.rangeBand();
-
-    function redraw(){
-        return original_svg;
-    }
 
     var row = svg.selectAll(".row")
         .data(matrix)
