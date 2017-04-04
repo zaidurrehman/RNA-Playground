@@ -5,11 +5,19 @@
  #######################--- Methods for Generating DotPlots ---############################
  */
 
-var matrix = []; // table data, globally accessible //todo: should become obselete
+var matrix = []; // table data, globally accessible
 
+/**
+ * Function to set a default reaction when a cell is hovered over on the dotplot.
+ * If the cell is not a header or if is in the upper triangle, it displays a small
+ * overlay showing the cell's row number, column number and matrix entry.
+ * @param x: hovered cell's row number
+ * @param y: hovered cell's column number
+ * @param z: hovered cell's matrix entry
+ */
 function hover_default(x, y, z){
     var tooltip = d3.select("#tooltip");
-    tooltip.style("position", "absolute")    //todo: define in stylesheet
+    tooltip.style("position", "absolute")
         .style("text-align", "center")
         .style("width", "60px")
         .style("height", "28px")
@@ -31,10 +39,16 @@ function hover_default(x, y, z){
         }
     }
 }
-
+/**
+ * Default reaction function when a cell is clicked on the dotplot.
+ * It displays a small overlay showing the cell's row number, column number and matrix entry.
+ * @param x: hovered cell's row number
+ * @param y: hovered cell's column number
+ * @param z: hovered cell's matrix entry
+ */
 function click_default(x, y, z){
     var tooltip = d3.select("#tooltip");
-    tooltip.style("opacity", 0)    //todo: define in stylesheet
+    tooltip.style("opacity", 0)
         .style("position", "absolute")
         .style("text-align", "center")
         .style("width", "60px")
@@ -54,8 +68,21 @@ function click_default(x, y, z){
             .style("top", (d3.event.pageY - 28) + "px");
     }
 }
-
+/**
+ * Renders the dotplot svg using d3.js
+ * @param {String} sequence: RNA sequence for generating dotplot
+ * @param table: matrix with values calculated using McCaskill algorithm
+ * @param pname: ID of the parent div where dotplot svg will be added
+ * @param hover_reaction: function for mouse hover on dotplot cells
+ * If not specified, an overlay displays cell information while hovering
+ * if the cell has a matrix entry
+ * @param click_reaction: function for mouse click on dotplot cells.
+ * If not specified, an overlay displays the cell information on click.
+ */
 function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
+    if(pname === undefined){
+        alert("Provide the parent div's ID where the dotplot svg should be rendered")
+    }
 
     if(hover_reaction === undefined){
         hover_reaction = hover_default;
@@ -88,7 +115,6 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         for(var j=1; j<table[i].length; j++){
             var a = table[i][j].i;
             var b = table[i][j].j;
-            //var c = Math.pow(parseFloat(table[i][j].value), 0.5);
             var c = parseFloat(table[i][j].value);
             c = parseFloat(c.toFixed(3));
             if(c > 1 || c < 0){
@@ -121,7 +147,9 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     var x = d3.scale.ordinal().rangeBands([0, width]),
         z = d3.scale.linear().domain([0, 1]).clamp(true);
 
-    // Zoom functionality code
+    /*
+    ########## Zoom and Drag functionality code starts here ##########
+     */
     var zoom = d3.behavior.zoom()
         .scaleExtent([1, 10])
         .on("zoom", zoomed);
@@ -132,27 +160,45 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         .on("drag", dragged)
         .on("dragend", dragended);
 
+    /**
+     * d3 Zoom function
+     */
     function zoomed() {
         svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
     }
 
+    /**
+     * Function to detect start of drag operation on svg
+     */
     function dragstarted() {
         d3.event.sourceEvent.stopPropagation();
         d3.select(this).classed("dragging", true);
     }
 
+    /**
+     * Function to transform svg during mouse dragging
+     * @param d
+     */
     function dragged(d) {
         d3.select(this).attr("x", d.x = d3.event.x).attr("y", d.y = d3.event.y);
     }
 
+    /**
+     * Function to detect end of drag operation on svg
+     */
     function dragended() {
         d3.select(this).classed("dragging", false);
     }
+    /*
+     ########## Zoom and Drag functionality code ends here ##########
+     */
+
 
     // draw border of parent div
     var dev = document.getElementById(pname);
     d3.select(dev).style("border", "1px solid black");
 
+    // A small overlay used to display information in default hover and click reaction functions
     var tooltip = d3.select(dev).append("div").attr("id", "tooltip");
 
     var svg = d3.select(dev).append("svg")
@@ -167,16 +213,29 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             svg.attr("transform", "scale(1)")
         });
 
+    /**
+     * Shades the two letters of sequence corresponding to a clicked cell
+     * @param x selected cell's row number
+     * @param y selected cell's column number
+     * @param pname parent div's ID
+     */
     function color_headers(x, y, pname){
         d3.selectAll("rect").style("fill", "white");    // remove previous header shading, if any
         d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
         d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
     }
 
+    /**
+     * Draws an arc between the two letters of sequence corresponding to a clicked cell
+     * @param x selected cell's row number
+     * @param y selected cell's column number
+     * @param pname parent div's ID
+     * @param rect_dim dimension of the rectangles on the dotplot
+     */
     function renderarc(x, y, pname, rect_dim) {
         d3.selectAll("#"+pname+"_arc_polyline").remove();    // remove previously drawn arc, if any
 
-        if (x!==y) {
+        if (x!==y && x!==0 && y!==0) {
             var x1 = (rect_dim / 2) + (rect_dim * x), // vertical tick
                 y1 = rect_dim / 4,
                 x2 = (rect_dim / 2) + (rect_dim * x), // actual arc/line start point
@@ -198,18 +257,29 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         }
     }
 
+    /**
+     * Hover function which call the hover_reaction function
+     * @param d
+     */
     function onHover(d) {
         if (typeof d.z === 'number'){
             hover_reaction(d.x, d.y, d.z);
         }
     }
 
+    /**
+     * Mouseout function on cells
+     */
     function mouseout(){
         tooltip.transition()
             .duration(100)
             .style("opacity", 0);
     }
 
+    /**
+     * Click function which calls the click_reaction function
+     * @param d
+     */
     function onClick(d) {
         color_headers(d.x, d.y, pname);
         renderarc(d.x, d.y, pname, rect_dim);
@@ -222,8 +292,9 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     isequence=seq.split("");
 
     x.domain(d3.range(n));
+
+    // append sequence letters as row and column labels
     [null].concat(isequence).forEach(function(base, i) {
-        // base.index = i;
         matrix[i] = d3.range(n).map(function(j) {
             if(j===0 && i!==0){
                 return {x: j, y:i, z:isequence[i-1]};
@@ -239,9 +310,9 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         matrix[link.source][link.target].z = link.value;
     });
 
-    var rect_dim = x.rangeBand();    //rectangle dimension, used for rendering arc on cell selection
+    var rect_dim = x.rangeBand();    // rectangle dimension, used for rendering arc on cell selection
 
-    var row = svg.selectAll(".row")
+    var row = svg.selectAll(".row")    // put matrix data on rows
         .data(matrix)
         .enter().append("g")
         .attr("class", "row")
@@ -250,6 +321,10 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         })
         .each(row);
 
+    /**
+     * Draws rectangle, circle or row and column header for every cell
+     * @param row
+     */
     function row(row) {
         var cell = d3.select(this).selectAll(".cell")
             .data(row.filter(function (d) {
@@ -258,7 +333,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             .enter().append("g")
             .attr("class", "dp_cell");
 
-        cell.append("rect")
+        cell.append("rect")    // draw rectangles, assign different id's to header rectangles
             .attr("x", function (d) {
                 return x(d.x);
             })
@@ -286,7 +361,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             .on("mouseout", mouseout)
             .on("click", onClick);
 
-        cell.append("circle")
+        cell.append("circle")    // draws circles in the cells with radius corresponding to z values
             .attr("cx", function (d) {
                 return x(d.x) + x.rangeBand() / 2;
             })
@@ -311,7 +386,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             .on("mouseout", mouseout)
             .on("click", onClick);
 
-        cell.append("text")
+        cell.append("text")    // put sequence letters as row and column labels
             .attr("x", function (d) {
                 return x(d.x) + x.rangeBand() / 2;
             })
