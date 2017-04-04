@@ -70,7 +70,7 @@ function click_default(x, y, z){
 }
 /**
  * Renders the dotplot svg using d3.js
- * @param {String} sequence: RNA sequence for generating dotplot
+ * @param sequence: RNA sequence for generating dotplot
  * @param table: matrix with values calculated using McCaskill algorithm
  * @param pname: ID of the parent div where dotplot svg will be added
  * @param hover_reaction: function for mouse hover on dotplot cells
@@ -215,22 +215,22 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
 
     /**
      * Shades the two letters of sequence corresponding to a clicked cell
-     * @param x selected cell's row number
-     * @param y selected cell's column number
-     * @param pname parent div's ID
+     * @param x: selected cell's row number
+     * @param y: selected cell's column number
+     * @param pname: parent div's ID
      */
     function color_headers(x, y, pname){
-        d3.selectAll("rect").style("fill", "white");    // remove previous header shading, if any
+        d3.select("#" + pname).selectAll("rect").style("fill", "white");    // remove previous header shading, if any
         d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
         d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
     }
 
     /**
      * Draws an arc between the two letters of sequence corresponding to a clicked cell
-     * @param x selected cell's row number
-     * @param y selected cell's column number
-     * @param pname parent div's ID
-     * @param rect_dim dimension of the rectangles on the dotplot
+     * @param x: selected cell's row number
+     * @param y: selected cell's column number
+     * @param pname: parent div's ID
+     * @param rect_dim: dimension of the rectangles on the dotplot
      */
     function renderarc(x, y, pname, rect_dim) {
         d3.selectAll("#"+pname+"_arc_polyline").remove();    // remove previously drawn arc, if any
@@ -312,7 +312,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
 
     var rect_dim = x.rangeBand();    // rectangle dimension, used for rendering arc on cell selection
 
-    var row = svg.selectAll(".row")    // put matrix data on rows
+    var row = svg.selectAll(".row")    // put matrix data into rows
         .data(matrix)
         .enter().append("g")
         .attr("class", "row")
