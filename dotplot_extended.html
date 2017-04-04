@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DotPlot Extended Example</title>
+</head>
+<body>
+<script src="js/libs/jquery.min.js"></script>
+<script src="js/libs/d3.min.js"></script>
+<script src="js/dotplot.js"></script>
+<script>
+    function click_reaction_2(x, y, z) {
+        d3.select("#second_border_"+x+"_0").style("fill", "white");
+        d3.select("#second_border_"+y+"_0").style("fill", "white");
+
+        // Default click reaction
+        var tooltip = d3.select("#tooltip");
+        tooltip.style("opacity", 0)    //todo: define in stylesheet
+            .style("position", "absolute")
+            .style("text-align", "center")
+            .style("width", "60px")
+            .style("height","28px")
+            .style("padding", "2px")
+            .style("font","12px sans-serif")
+            .style("background", "lightgreen")
+            .style("border", "0px")
+            .style("border-radius", "16px")
+            .style("pointer-events", "none");
+        tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
+        if (y !== 0 && x !== 0) {
+            tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        }
+    }
+
+    function hover_reaction_2(x, y, z) {
+    }
+
+    function click_reaction_1(x, y, z) {
+        d3.select("#first_arc_polyline").remove();
+
+        var cells = [[{'i': 0, 'j': 0, 'value': 0, 'traces': []}, {'i': 0, 'j': 1, 'value': 0, 'traces': []}, {
+            'i': 0,
+            'j': 2,
+            'value': 0,
+            'traces': []
+        }, {'i': 0, 'j': 3, 'value': 0, 'traces': []}, {'i': 0, 'j': 4, 'value': 0, 'traces': []}, {
+            'i': 0,
+            'j': 5,
+            'value': 0,
+            'traces': []
+        }, {'i': 0, 'j': 6, 'value': 0, 'traces': []}, {'i': 0, 'j': 7, 'value': 0, 'traces': []}], [{
+            'i': 1,
+            'j': 0,
+            'value': 0,
+            'traces': []
+        }, {'i': 1, 'j': 1, 'value': 0, 'traces': []}, {'i': 1, 'j': 2, 'value': 0, 'traces': []}, {
+            'i': 1,
+            'j': 3,
+            'value': 0.045538815895561774,
+            'traces': []
+        }, {'i': 1, 'j': 4, 'value': 0.045538815895561774, 'traces': []}, {
+            'i': 1,
+            'j': 5,
+            'value': 0.16932615163400927,
+            'traces': []
+        }, {'i': 1, 'j': 6, 'value': 0, 'traces': []}, {
+            'i': 1,
+            'j': 7,
+            'value': 0.41690082311090426,
+            'traces': []
+        }], [{'i': 2, 'j': 0, 'value': null, 'traces': []}, {'i': 2, 'j': 1, 'value': 0, 'traces': []}, {
+            'i': 2,
+            'j': 2,
+            'value': 0,
+            'traces': []
+        }, {'i': 2, 'j': 3, 'value': 0, 'traces': []}, {
+            'i': 2,
+            'j': 4,
+            'value': 0.2931134873724568,
+            'traces': []
+        }, {'i': 2, 'j': 5, 'value': 0.16932615163400927, 'traces': []}, {
+            'i': 2,
+            'j': 6,
+            'value': 0,
+            'traces': []
+        }, {'i': 2, 'j': 7, 'value': 0.16932615163400927, 'traces': []}], [{
+            'i': 3,
+            'j': 0,
+            'value': null,
+            'traces': []
+        }, {'i': 3, 'j': 1, 'value': null, 'traces': []}, {'i': 3, 'j': 2, 'value': 0, 'traces': []}, {
+            'i': 3,
+            'j': 3,
+            'value': 0,
+            'traces': []
+        }, {'i': 3, 'j': 4, 'value': 0, 'traces': []}, {'i': 3, 'j': 5, 'value': 0, 'traces': []}, {
+            'i': 3,
+            'j': 6,
+            'value': 0.29311348737245674,
+            'traces': []
+        }, {'i': 3, 'j': 7, 'value': 0, 'traces': []}], [{'i': 4, 'j': 0, 'value': null, 'traces': []}, {
+            'i': 4,
+            'j': 1,
+            'value': null,
+            'traces': []
+        }, {'i': 4, 'j': 2, 'value': null, 'traces': []}, {'i': 4, 'j': 3, 'value': 0, 'traces': []}, {
+            'i': 4,
+            'j': 4,
+            'value': 0,
+            'traces': []
+        }, {'i': 4, 'j': 5, 'value': 0, 'traces': []}, {'i': 4, 'j': 6, 'value': 0, 'traces': []}, {
+            'i': 4,
+            'j': 7,
+            'value': 0,
+            'traces': []
+        }], [{'i': 5, 'j': 0, 'value': null, 'traces': []}, {'i': 5, 'j': 1, 'value': null, 'traces': []}, {
+            'i': 5,
+            'j': 2,
+            'value': null,
+            'traces': []
+        }, {'i': 5, 'j': 3, 'value': null, 'traces': []}, {'i': 5, 'j': 4, 'value': 0, 'traces': []}, {
+            'i': 5,
+            'j': 5,
+            'value': 0,
+            'traces': []
+        }, {'i': 5, 'j': 6, 'value': 0, 'traces': []}, {'i': 5, 'j': 7, 'value': 0, 'traces': []}], [{
+            'i': 6,
+            'j': 0,
+            'value': null,
+            'traces': []
+        }, {'i': 6, 'j': 1, 'value': null, 'traces': []}, {'i': 6, 'j': 2, 'value': null, 'traces': []}, {
+            'i': 6,
+            'j': 3,
+            'value': null,
+            'traces': []
+        }, {'i': 6, 'j': 4, 'value': null, 'traces': []}, {'i': 6, 'j': 5, 'value': 0, 'traces': []}, {
+            'i': 6,
+            'j': 6,
+            'value': 0,
+            'traces': []
+        }, {'i': 6, 'j': 7, 'value': 0, 'traces': []}], [{'i': 7, 'j': 0, 'value': null, 'traces': []}, {
+            'i': 7,
+            'j': 1,
+            'value': null,
+            'traces': []
+        }, {'i': 7, 'j': 2, 'value': null, 'traces': []}, {'i': 7, 'j': 3, 'value': null, 'traces': []}, {
+            'i': 7,
+            'j': 4,
+            'value': null,
+            'traces': []
+        }, {'i': 7, 'j': 5, 'value': null, 'traces': []}, {'i': 7, 'j': 6, 'value': 0, 'traces': []}, {
+            'i': 7,
+            'j': 7,
+            'value': 0,
+            'traces': []
+        }]];
+        var sequence = "GGUCCAC";
+
+        if(x > y) {
+
+            d3.select("#second_svg").remove();
+            $('#second').html(dotplot(sequence=sequence, table=cells, pname="second",hover_reaction=hover_reaction_2,click_reaction=click_reaction_2));
+        }
+        else{
+            d3.select("#second_svg").remove();
+
+        }
+    }
+
+    function color_headers(x, y, pname){
+        d3.select("#first").selectAll("rect").style("fill", "white");    // remove previous header shading, if any
+        d3.select("#" + pname + "_border_" + x +"_0").style("fill", "lightcoral");
+        d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
+    }
+
+    function hover_reaction_1(x,y,z){
+        color_headers(x, y, "first");
+    }
+
+    function small_example(pname) {
+        var cells = [[{'i': 0, 'j': 0, 'value': 0, 'traces': []}, {'i': 0, 'j': 1, 'value': 0, 'traces': []}, {
+            'i': 0,
+            'j': 2,
+            'value': 0,
+            'traces': []
+        }, {'i': 0, 'j': 3, 'value': 0, 'traces': []}, {'i': 0, 'j': 4, 'value': 0, 'traces': []}, {
+            'i': 0,
+            'j': 5,
+            'value': 0,
+            'traces': []
+        }, {'i': 0, 'j': 6, 'value': 0, 'traces': []}, {'i': 0, 'j': 7, 'value': 0, 'traces': []}], [{
+            'i': 1,
+            'j': 0,
+            'value': 0,
+            'traces': []
+        }, {'i': 1, 'j': 1, 'value': 0, 'traces': []}, {'i': 1, 'j': 2, 'value': 0, 'traces': []}, {
+            'i': 1,
+            'j': 3,
+            'value': 0.045538815895561774,
+            'traces': []
+        }, {'i': 1, 'j': 4, 'value': 0.045538815895561774, 'traces': []}, {
+            'i': 1,
+            'j': 5,
+            'value': 0.16932615163400927,
+            'traces': []
+        }, {'i': 1, 'j': 6, 'value': 0, 'traces': []}, {
+            'i': 1,
+            'j': 7,
+            'value': 0.41690082311090426,
+            'traces': []
+        }], [{'i': 2, 'j': 0, 'value': null, 'traces': []}, {'i': 2, 'j': 1, 'value': 0, 'traces': []}, {
+            'i': 2,
+            'j': 2,
+            'value': 0,
+            'traces': []
+        }, {'i': 2, 'j': 3, 'value': 0, 'traces': []}, {
+            'i': 2,
+            'j': 4,
+            'value': 0.2931134873724568,
+            'traces': []
+        }, {'i': 2, 'j': 5, 'value': 0.16932615163400927, 'traces': []}, {
+            'i': 2,
+            'j': 6,
+            'value': 0,
+            'traces': []
+        }, {'i': 2, 'j': 7, 'value': 0.16932615163400927, 'traces': []}], [{
+            'i': 3,
+            'j': 0,
+            'value': null,
+            'traces': []
+        }, {'i': 3, 'j': 1, 'value': null, 'traces': []}, {'i': 3, 'j': 2, 'value': 0, 'traces': []}, {
+            'i': 3,
+            'j': 3,
+            'value': 0,
+            'traces': []
+        }, {'i': 3, 'j': 4, 'value': 0, 'traces': []}, {'i': 3, 'j': 5, 'value': 0, 'traces': []}, {
+            'i': 3,
+            'j': 6,
+            'value': 0.29311348737245674,
+            'traces': []
+        }, {'i': 3, 'j': 7, 'value': 0, 'traces': []}], [{'i': 4, 'j': 0, 'value': null, 'traces': []}, {
+            'i': 4,
+            'j': 1,
+            'value': null,
+            'traces': []
+        }, {'i': 4, 'j': 2, 'value': null, 'traces': []}, {'i': 4, 'j': 3, 'value': 0, 'traces': []}, {
+            'i': 4,
+            'j': 4,
+            'value': 0,
+            'traces': []
+        }, {'i': 4, 'j': 5, 'value': 0, 'traces': []}, {'i': 4, 'j': 6, 'value': 0, 'traces': []}, {
+            'i': 4,
+            'j': 7,
+            'value': 0,
+            'traces': []
+        }], [{'i': 5, 'j': 0, 'value': null, 'traces': []}, {'i': 5, 'j': 1, 'value': null, 'traces': []}, {
+            'i': 5,
+            'j': 2,
+            'value': null,
+            'traces': []
+        }, {'i': 5, 'j': 3, 'value': null, 'traces': []}, {'i': 5, 'j': 4, 'value': 0, 'traces': []}, {
+            'i': 5,
+            'j': 5,
+            'value': 0,
+            'traces': []
+        }, {'i': 5, 'j': 6, 'value': 0, 'traces': []}, {'i': 5, 'j': 7, 'value': 0, 'traces': []}], [{
+            'i': 6,
+            'j': 0,
+            'value': null,
+            'traces': []
+        }, {'i': 6, 'j': 1, 'value': null, 'traces': []}, {'i': 6, 'j': 2, 'value': null, 'traces': []}, {
+            'i': 6,
+            'j': 3,
+            'value': null,
+            'traces': []
+        }, {'i': 6, 'j': 4, 'value': null, 'traces': []}, {'i': 6, 'j': 5, 'value': 0, 'traces': []}, {
+            'i': 6,
+            'j': 6,
+            'value': 0,
+            'traces': []
+        }, {'i': 6, 'j': 7, 'value': 0, 'traces': []}], [{'i': 7, 'j': 0, 'value': null, 'traces': []}, {
+            'i': 7,
+            'j': 1,
+            'value': null,
+            'traces': []
+        }, {'i': 7, 'j': 2, 'value': null, 'traces': []}, {'i': 7, 'j': 3, 'value': null, 'traces': []}, {
+            'i': 7,
+            'j': 4,
+            'value': null,
+            'traces': []
+        }, {'i': 7, 'j': 5, 'value': null, 'traces': []}, {'i': 7, 'j': 6, 'value': 0, 'traces': []}, {
+            'i': 7,
+            'j': 7,
+            'value': 0,
+            'traces': []
+        }]];
+        var sequence = "GGUCCAC";
+
+        $('#first').html(dotplot(sequence, cells, pname, hover_reaction_1, click_reaction_1));
+
+    }
+
+
+</script>
+
+<div id="first" style="width:550px;height:420px">
+    <script>small_example("first");</script>
+</div>
+<p> </p>
+<div id="second" style="width:550px;height:420px">
+
+</div>
+</body></html>
