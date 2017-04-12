@@ -1,3 +1,6 @@
+/*
+ #######################--- END DotPlots ---############################
+ */
 /**
  * Created by zr in January, 2017.
  */
@@ -14,10 +17,13 @@ var matrix = []; // table data, globally accessible
  * @param x: hovered cell's row number
  * @param y: hovered cell's column number
  * @param z: hovered cell's matrix entry
+ * @param pname: ID of the parent div
  */
-function hover_default(x, y, z){
-    var tooltip = d3.select("#tooltip");
+function hover_default(x, y, z, pname){
+    var tooltip = d3.select("#tooltip_"+pname);
     tooltip.style("position", "absolute")
+        .style("display", "none")
+        .style("margin", "0")
         .style("text-align", "center")
         .style("width", "60px")
         .style("height", "28px")
@@ -27,15 +33,18 @@ function hover_default(x, y, z){
         .style("border", "0px")
         .style("border-radius", "8px")
         .style("pointer-events", "none");
-    tooltip.transition()
-        .duration(200)
-        .style("opacity", .9);
     if (y !== 0 && x !== 0) {
         if (z.toFixed(4) > 0.0000){
+            var e = window.event;
+            var x_pos = e.pageX + 5;
+            var y_pos = e.pageY + 5;
+
             tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-            // return "(" + x + ", " + y + ")<br/>" + z.toFixed(4);
+                .style("left", x_pos + "px")
+                .style("top", y_pos + "px");
+            tooltip.transition()
+                .duration(200)
+                .style("display", "block");
         }
     }
 }
@@ -45,10 +54,12 @@ function hover_default(x, y, z){
  * @param x: hovered cell's row number
  * @param y: hovered cell's column number
  * @param z: hovered cell's matrix entry
+ * @param pname: ID of the parent div
  */
-function click_default(x, y, z){
-    var tooltip = d3.select("#tooltip");
-    tooltip.style("opacity", 0)
+function click_default(x, y, z, pname){
+    var tooltip = d3.select("#tooltip_"+pname);
+    tooltip.style("display", "none")
+        .style("margin", "0")
         .style("position", "absolute")
         .style("text-align", "center")
         .style("width", "60px")
@@ -59,13 +70,18 @@ function click_default(x, y, z){
         .style("border", "0px")
         .style("border-radius", "16px")
         .style("pointer-events", "none");
-    tooltip.transition()
-        .duration(200)
-        .style("opacity", .9);
+
     if (y !== 0 && x !== 0) {
+        var e = window.event;
+        var x_pos = e.pageX + 5;
+        var y_pos = e.pageY + 5;
+
         tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
-            .style("left", (d3.event.pageX) + "px")
-            .style("top", (d3.event.pageY - 28) + "px");
+            .style("left", x_pos + "px")
+            .style("top", y_pos + "px");
+        tooltip.transition()
+            .duration(200)
+            .style("display", "block");
     }
 }
 /**
@@ -84,11 +100,11 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         alert("Provide the parent div's ID where the dotplot svg should be rendered")
     }
 
-    if(hover_reaction === undefined){
+    if(hover_reaction === undefined || hover_reaction === null){
         hover_reaction = hover_default;
     }
 
-    if(click_reaction === undefined){
+    if(click_reaction === undefined || click_reaction === null){
         click_reaction = click_default;
     }
 
@@ -138,8 +154,16 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
     var parent_width = $("#"+pname).width();
     var parent_height = $("#"+pname).height();
     var svg_dim = Number(Math.min(parent_width, parent_height));
-    document.getElementById(pname).style.width = svg_dim + "px";
-    document.getElementById(pname).style.height = svg_dim + "px";
+
+    if(svg_dim === 0){
+        document.getElementById(pname).style.width = 500 + "px";
+        document.getElementById(pname).style.height = 500 + "px";
+        svg_dim = 500;
+    }
+    else {
+        document.getElementById(pname).style.width = svg_dim + "px";
+        document.getElementById(pname).style.height = svg_dim + "px";
+    }
 
     var bpm = maindic;
     var width = svg_dim,
@@ -148,7 +172,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
         z = d3.scale.linear().domain([0, 1]).clamp(true);
 
     /*
-    ########## Zoom and Drag functionality code starts here ##########
+     ########## Zoom and Drag functionality code starts here ##########
      */
     var zoom = d3.behavior.zoom()
         .scaleExtent([1, 10])
@@ -196,22 +220,40 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
 
     // draw border of parent div
     var dev = document.getElementById(pname);
-    d3.select(dev).style("border", "1px solid black");
+    d3.select(dev).style("border", "1px solid black").style("background", "white");
 
-    // A small overlay used to display information in default hover and click reaction functions
-    var tooltip = d3.select(dev).append("div").attr("id", "tooltip");
+    if(d3.select("#"+pname+"_svg").empty()) {
+        var svg = d3.select(dev).append("svg")
+            .attr("id", pname + "_svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("border", 1)
+            .attr("fill", "black")
+            .call(zoom)
+            .on("dblclick.zoom", function () {
+                svg.attr("transform", "scale(1)")
+            });
+        var tooltip = d3.select(dev).append("div").attr("id", "tooltip_"+pname).style("display", "none");
+    }
+    else {
+        d3.select("#tooltip_"+pname).remove();
+        d3.select("#"+pname+"_svg").remove();
 
-    var svg = d3.select(dev).append("svg")
-        .attr("id", pname+"_svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g")
-        .attr("border",1)
-        .attr("fill", "black")
-        .call(zoom)
-        .on("dblclick.zoom", function() {
-            svg.attr("transform", "scale(1)")
-        });
+        var svg = d3.select(dev).append("svg")
+            .attr("id", pname + "_svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("border", 1)
+            .attr("fill", "black")
+            .call(zoom)
+            .on("dblclick.zoom", function () {
+                svg.attr("transform", "scale(1)")
+            });
+
+        var tooltip = d3.select(dev).append("div").attr("id", "tooltip_"+pname).style("display", "none");
+    }
 
     /**
      * Shades the two letters of sequence corresponding to a clicked cell
@@ -233,6 +275,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
      * @param rect_dim: dimension of the rectangles on the dotplot
      */
     function renderarc(x, y, pname, rect_dim) {
+
         d3.selectAll("#"+pname+"_arc_polyline").remove();    // remove previously drawn arc, if any
 
         if (x!==y && x!==0 && y!==0) {
@@ -263,7 +306,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
      */
     function onHover(d) {
         if (typeof d.z === 'number'){
-            hover_reaction(d.x, d.y, d.z);
+            hover_reaction(d.x, d.y, d.z, pname);
         }
     }
 
@@ -271,19 +314,23 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
      * Mouseout function on cells
      */
     function mouseout(){
+        var tooltip = d3.select("#tooltip_"+pname);
         tooltip.transition()
             .duration(100)
-            .style("opacity", 0);
+            .style("display", "none");
     }
 
     /**
-     * Click function which calls the click_reaction function
+     * Click function:
+     * 1) highlights the two headers letters
+     * 2) draws an arc with "elementID_arc_polyline" ID
+     * 3) calls the click_reaction function
      * @param d
      */
     function onClick(d) {
         color_headers(d.x, d.y, pname);
         renderarc(d.x, d.y, pname, rect_dim);
-        click_reaction(d.x, d.y, d.z);
+        click_reaction(d.x, d.y, d.z, pname);
     }
 
     var seq = bpm["sequence"];
@@ -305,7 +352,7 @@ function dotplot(sequence, table, pname, hover_reaction, click_reaction) {
             } else {
                 return {x: j, y: i, z: 0};
             }});
-        });
+    });
     bpm["base-pairing-probabilities"].forEach(function(link) {
         matrix[link.source][link.target].z = link.value;
     });

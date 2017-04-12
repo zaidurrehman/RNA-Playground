@@ -9,38 +9,40 @@
 <script src="js/libs/d3.min.js"></script>
 <script src="js/dotplot.js"></script>
 <script>
-    function click_reaction_2(x, y, z) {
+    /**
+     * On click, Second svg should have an arc, click tooltip, and no header highlighting
+     * @param x
+     * @param y
+     * @param z
+     * @param pname
+     */
+    function click_reaction_2(x, y, z,pname) {
+        click_default(x, y, z, pname);
+        d3.select("#"+"_arc_polyline").remove();
         d3.select("#second_border_"+x+"_0").style("fill", "white");
         d3.select("#second_border_"+y+"_0").style("fill", "white");
-
-        // Default click reaction
-        var tooltip = d3.select("#tooltip");
-        tooltip.style("opacity", 0)    //todo: define in stylesheet
-            .style("position", "absolute")
-            .style("text-align", "center")
-            .style("width", "60px")
-            .style("height","28px")
-            .style("padding", "2px")
-            .style("font","12px sans-serif")
-            .style("background", "lightgreen")
-            .style("border", "0px")
-            .style("border-radius", "16px")
-            .style("pointer-events", "none");
-        tooltip.transition()
-            .duration(200)
-            .style("opacity", .9);
-        if (y !== 0 && x !== 0) {
-            tooltip.html("(" + x + ", " + y + ")<br/>" + z.toFixed(4))
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-        }
     }
 
-    function hover_reaction_2(x, y, z) {
+    /**
+     * Second svg should have no hover reaction
+     * @param x
+     * @param y
+     * @param z
+     * @param pname
+     */
+    function hover_reaction_2(x, y, z,pname) {
     }
 
-    function click_reaction_1(x, y, z) {
+    /**
+     * On click in the upper triangle, first svg displays the second svg
+     * @param x
+     * @param y
+     * @param z
+     * @param pname
+     */
+    function click_reaction_1(x, y, z,pname) {
         d3.select("#first_arc_polyline").remove();
+//        color_headers_subseq(x,y,z,"first");
 
         var cells = [[{'i': 0, 'j': 0, 'value': 0, 'traces': []}, {'i': 0, 'j': 1, 'value': 0, 'traces': []}, {
             'i': 0,
@@ -163,10 +165,11 @@
         if(x > y) {
 
             d3.select("#second_svg").remove();
-            $('#second').html(dotplot(sequence=sequence, table=cells, pname="second",hover_reaction=hover_reaction_2,click_reaction=click_reaction_2));
+            dotplot(sequence=sequence, table=cells, pname="second",hover_reaction=hover_reaction_2,click_reaction=click_reaction_2);
         }
         else{
             d3.select("#second_svg").remove();
+            d3.select("#tooltip_second").remove();
 
         }
     }
@@ -177,8 +180,25 @@
         d3.select("#" + pname + "_border_" + y +"_0").style("fill", "lightcoral");
     }
 
-    function hover_reaction_1(x,y,z){
-        color_headers(x, y, "first");
+    function color_headers_subseq(x, y, pname){
+        d3.select("#first").selectAll("rect").style("fill", "white");    // remove previous header shading, if any
+        var count;
+        var a;
+        var b;
+        if(x<y) {
+            a = x;
+            b = y;
+        } else {
+            a = y;
+            b = x;
+        }
+        for(count=a;count<=b;count++){
+            d3.select("#" + pname + "_border_" + count +"_0").style("fill", "lightcoral");
+        }
+    }
+
+    function hover_reaction_1(x,y,z, pname){
+        color_headers(x, y, pname);
     }
 
     function small_example(pname) {
@@ -300,7 +320,7 @@
         }]];
         var sequence = "GGUCCAC";
 
-        $('#first').html(dotplot(sequence, cells, pname, hover_reaction_1, click_reaction_1));
+        dotplot(sequence, cells, pname, hover_reaction_1, click_reaction_1);
 
     }
 

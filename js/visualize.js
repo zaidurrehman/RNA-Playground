@@ -167,13 +167,40 @@ function NussinovMatrixViewModel() {
         $("#4dVisual").text("");
         //console.log("matrix compute");
         if (self.input.recursion() === "mcCaskill") {
-            $("#paired_dotplot").html(dotplot(self.input.sequence(), tables[2].cells, 'pd'));
-            $("#unpaired_dotplot").html(dotplot(self.input.sequence(), tables[3].cells, 'ud'));
+            dotplot(self.input.sequence(), tables[2].cells, 'paired_dotplot');
+
+            /**
+             * On click, Unpaired dotplot should highlight the subsequence (instead of only
+             * the first and last letters) and should not draw any arc
+             * @param x
+             * @param y
+             * @param z
+             * @param pname
+             */
+            function click_reaction_subseq(x, y, z, pname) {
+                click_default(x, y, z, pname);    // call the default reaction to render arcs
+                d3.selectAll("#"+pname+"_arc_polyline").remove(); // remove the arc
+                d3.select("#large").selectAll("rect").style("fill", "white");    // remove previous header shading, if any
+                var count;
+                var a;
+                var b;
+                if(x<y) {
+                    a = x;
+                    b = y;
+                } else {
+                    a = y;
+                    b = x;
+                }
+                for(count=a;count<=b;count++){
+                    d3.select("#" + pname + "_border_" + count +"_0").style("fill", "lightcoral");
+                }
+            }
+            dotplot(self.input.sequence(), tables[3].cells, 'unpaired_dotplot', null, click_reaction_subseq);
 
         }
         if (self.input.recursion() === "rnaup") {
-            $("#dotplot_seq1").html(dotplot(self.rawSeq().toUpperCase(), tables[1].cells, 'up1'));
-            $("#dotplot_seq2").html(dotplot(self.rawSeq2().toUpperCase(), tables[2].cells, 'up2'));
+            dotplot(self.rawSeq().toUpperCase(), tables[1].cells, 'dotplot_seq1');
+            dotplot(self.rawSeq2().toUpperCase(), tables[2].cells, 'dotplot_seq2');
 
         }
 
